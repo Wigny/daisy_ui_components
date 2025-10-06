@@ -80,6 +80,9 @@ defmodule DaisyUIComponents.Form do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
 
+  attr :on_query, :any,
+    doc: "the JS event to trigger when a value is searched in autocomplete inputs"
+
   attr :rest, :global,
     include: ~w(autocomplete cols disabled form list max maxlength min minlength
                 pattern placeholder readonly required rows size step)
@@ -267,7 +270,13 @@ defmodule DaisyUIComponents.Form do
         if to_string(value) == to_string(assigns.value), do: label
       end)
 
-    assigns = assign(assigns, :selected, selected_label)
+    assigns =
+      assigns
+      |> assign(:selected, selected_label)
+      |> update(:on_query, fn
+        %JS{} = js -> js
+        event when is_binary(event) -> JS.push(event)
+      end)
 
     ~H"""
     <.fieldset class="mt-2">
@@ -282,9 +291,9 @@ defmodule DaisyUIComponents.Form do
           class="input w-full"
           name="label"
           phx-change={
-            JS.set_attribute({"value", ""}, to: "##{@id}")
+            @on_query
+            |> JS.set_attribute({"value", ""}, to: "##{@id}")
             |> JS.dispatch("change", to: "##{@id}")
-            |> JS.push("search")
           }
           phx-debounce={300}
           autocomplete="off"
@@ -296,7 +305,8 @@ defmodule DaisyUIComponents.Form do
           class="menu dropdown-content bg-base-100 rounded-box z-1 max-h-80 p-2 w-full shadow flex-nowrap overflow-auto"
         >
           <li :for={{label, value} <- @options}>
-            <a
+            <button
+              type="button"
               class="aria-selected:menu-active"
               aria-selected={to_string(value) == to_string(@value)}
               onclick="document.activeElement.blur()"
@@ -306,7 +316,7 @@ defmodule DaisyUIComponents.Form do
               }
             >
               {label}
-            </a>
+            </button>
           </li>
         </ul>
       </div>
