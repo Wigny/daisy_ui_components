@@ -284,11 +284,12 @@ defmodule DaisyUIComponents.Form do
         {@label}
       </.fieldset_label>
       <div class="dropdown">
-        <input
+        <.input
           tabindex="0"
-          id="batata"
+          id={@id <> "_label"}
           type="text"
-          class="input w-full"
+          class={[@class, "w-full"]}
+          color={@color}
           name="label"
           phx-change={
             @on_query
@@ -307,8 +308,7 @@ defmodule DaisyUIComponents.Form do
           <li :for={{label, value} <- @options}>
             <button
               type="button"
-              class="aria-selected:menu-active"
-              aria-selected={to_string(value) == to_string(@value)}
+              class={to_string(value) == to_string(@value) && "menu-active"}
               onclick="document.activeElement.blur()"
               phx-click={
                 JS.set_attribute({"value", value}, to: "##{@id}")
