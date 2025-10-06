@@ -261,13 +261,78 @@ defmodule DaisyUIComponents.Form do
     """
   end
 
+  def form_input(%{type: "autocomplete"} = assigns) do
+    selected_label =
+      Enum.find_value(assigns.options, fn {label, value} ->
+        if to_string(value) == to_string(assigns.value), do: label
+      end)
+
+    assigns = assign(assigns, :selected, selected_label)
+
+    ~H"""
+    <.fieldset class="mt-2">
+      <.fieldset_label for={@id}>
+        {@label}
+      </.fieldset_label>
+      <DaisyUIComponents.Dropdown.dropdown>
+        <.input
+          tabindex="0"
+          id="batata"
+          type="text"
+          class="w-full"
+          name="label"
+          phx-change={
+            JS.set_attribute({"value", ""}, to: "##{@id}")
+            |> JS.dispatch("change", to: "##{@id}")
+            |> JS.push("search")
+          }
+          phx-debounce={300}
+          autocomplete="off"
+          value={@selected}
+          placeholder={@rest[:placeholder]}
+        />
+        <DaisyUIComponents.Menu.menu
+          tabindex="1"
+          class="dropdown-content bg-base-100 rounded-box z-[1] max-h-80 p-2 w-full shadow flex-nowrap overflow-auto"
+        >
+          <:item :for={{label, value} <- @options}>
+            <DaisyUIComponents.Button.button
+              type="button"
+              class="aria-selected:menu-active"
+              aria-selected={to_string(value) == to_string(@value)}
+              onclick="document.activeElement.blur()"
+              phx-click={
+                JS.set_attribute({"value", value}, to: "##{@id}")
+                |> JS.dispatch("change", to: "##{@id}")
+              }
+            >
+              {label}
+            </DaisyUIComponents.Button.button>
+          </:item>
+        </DaisyUIComponents.Menu.menu>
+      </DaisyUIComponents.Dropdown.dropdown>
+      <input type="hidden" id={@id} name={@name} value={@value} {@rest} />
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </.fieldset>
+    """
+  end
+
   def form_input(%{type: "textarea"} = assigns) do
     ~H"""
     <.fieldset class="mt-2">
       <.fieldset_label for={@id}>
         {@label}
       </.fieldset_label>
-      <.input id={@id} type="textarea" name={@name} color={@color} class={[@class, "w-full"]} prompt={@prompt} value={@value} {@rest} />
+      <.input
+        id={@id}
+        type="textarea"
+        name={@name}
+        color={@color}
+        class={[@class, "w-full"]}
+        prompt={@prompt}
+        value={@value}
+        {@rest}
+      />
       <.error :for={msg <- @errors}>{msg}</.error>
     </.fieldset>
     """
