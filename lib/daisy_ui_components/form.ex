@@ -265,62 +265,20 @@ defmodule DaisyUIComponents.Form do
   end
 
   def form_input(%{type: "autocomplete"} = assigns) do
-    selected_label =
-      Enum.find_value(assigns.options, fn {label, value} ->
-        if to_string(value) == to_string(assigns.value), do: label
-      end)
-
-    assigns =
-      assigns
-      |> assign(:selected, selected_label)
-      |> update(:on_query, fn
-        %JS{} = js -> js
-        event when is_binary(event) -> JS.push(event)
-      end)
-
     ~H"""
     <.fieldset class="mt-2">
-      <.fieldset_label for={@id}>
-        {@label}
-      </.fieldset_label>
-      <div class="dropdown">
-        <.input
-          tabindex="0"
-          id={@id <> "_label"}
-          type="text"
-          class={[@class, "w-full"]}
-          color={@color}
-          name="label"
-          phx-change={
-            @on_query
-            |> JS.set_attribute({"value", ""}, to: "##{@id}")
-            |> JS.dispatch("change", to: "##{@id}")
-          }
-          phx-debounce={300}
-          autocomplete="off"
-          value={@selected}
-          placeholder={@rest[:placeholder]}
-        />
-        <ul
-          tabindex="1"
-          class="menu dropdown-content bg-base-100 rounded-box z-1 max-h-80 p-2 w-full shadow flex-nowrap overflow-auto"
-        >
-          <li :for={{label, value} <- @options}>
-            <button
-              type="button"
-              class={to_string(value) == to_string(@value) && "menu-active"}
-              onclick="document.activeElement.blur()"
-              phx-click={
-                JS.set_attribute({"value", value}, to: "##{@id}")
-                |> JS.dispatch("change", to: "##{@id}")
-              }
-            >
-              {label}
-            </button>
-          </li>
-        </ul>
-      </div>
-      <input type="hidden" id={@id} name={@name} value={@value} {@rest} />
+      <.fieldset_label for={@id}>{@label}</.fieldset_label>
+      <.input
+        id={@id}
+        type="autocomplete"
+        name={@name}
+        color={@color}
+        class={[@class, "w-full"]}
+        options={@options}
+        value={@value}
+        on_query={@on_query}
+        {@rest}
+      />
       <.error :for={msg <- @errors}>{msg}</.error>
     </.fieldset>
     """
