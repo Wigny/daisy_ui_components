@@ -67,8 +67,8 @@ defmodule DaisyUIComponents.Form do
   attr :type, :string,
     default: "text",
     values:
-      ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select tel text textarea time url week toggle checkbox_group radio_group)
+      ~w(checkbox color date datetime-local email file hidden month number password range radio
+      search select autocomplete tel text textarea time url week toggle checkbox_group radio_group)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -274,12 +274,12 @@ defmodule DaisyUIComponents.Form do
       <.fieldset_label for={@id}>
         {@label}
       </.fieldset_label>
-      <DaisyUIComponents.Dropdown.dropdown>
-        <.input
+      <div class="dropdown">
+        <input
           tabindex="0"
           id="batata"
           type="text"
-          class="w-full"
+          class="input w-full"
           name="label"
           phx-change={
             JS.set_attribute({"value", ""}, to: "##{@id}")
@@ -291,13 +291,12 @@ defmodule DaisyUIComponents.Form do
           value={@selected}
           placeholder={@rest[:placeholder]}
         />
-        <DaisyUIComponents.Menu.menu
+        <ul
           tabindex="1"
-          class="dropdown-content bg-base-100 rounded-box z-[1] max-h-80 p-2 w-full shadow flex-nowrap overflow-auto"
+          class="menu dropdown-content bg-base-100 rounded-box z-1 max-h-80 p-2 w-full shadow flex-nowrap overflow-auto"
         >
-          <:item :for={{label, value} <- @options}>
-            <DaisyUIComponents.Button.button
-              type="button"
+          <li :for={{label, value} <- @options}>
+            <a
               class="aria-selected:menu-active"
               aria-selected={to_string(value) == to_string(@value)}
               onclick="document.activeElement.blur()"
@@ -307,10 +306,10 @@ defmodule DaisyUIComponents.Form do
               }
             >
               {label}
-            </DaisyUIComponents.Button.button>
-          </:item>
-        </DaisyUIComponents.Menu.menu>
-      </DaisyUIComponents.Dropdown.dropdown>
+            </a>
+          </li>
+        </ul>
+      </div>
       <input type="hidden" id={@id} name={@name} value={@value} {@rest} />
       <.error :for={msg <- @errors}>{msg}</.error>
     </.fieldset>
